@@ -175,4 +175,8 @@ MIT © [Sharif Rayhan Nafi](https://github.com/sharifrayhan)
 
 ## Acknowledgments
 
+This module was inspired by the scroll forwarding behavior in the Bluesky app
+.
+Special thanks to the Bluesky engineering team — their implementation and user experience provided valuable insight into creating a natural, responsive gesture-forwarding system.
+
 Built with [Expo Modules](https://docs.expo.dev/modules/) 🚀
