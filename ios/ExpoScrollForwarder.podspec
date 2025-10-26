@@ -3,10 +3,10 @@ Pod::Spec.new do |s|
   s.version        = '1.0.0'
   s.summary        = 'Forward scroll gesture from UIView to UIScrollView'
   s.description    = 'Forward scroll gesture from UIView to UIScrollView'
-  s.author         = 'colitas'
-  s.homepage       = 'https://github.com/neutronltd/colitas'
+  s.author         = ''
+  s.homepage       = 'https://github.com/sharifrayhan/expo-scroll-forwarder'
   s.platforms      = { :ios => '13.4', :tvos => '13.4' }
-  s.source         = { :path => '.' }
+  s.source         = { git: '' }
   s.static_framework = true
 
   s.dependency 'ExpoModulesCore'
