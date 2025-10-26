@@ -1,0 +1,9 @@
+{
+  "platforms": ["ios", "android"],
+  "ios": {
+    "modules": ["ExpoScrollForwarderModule"]
+  },
+  "android": {
+    "modules": ["expo.modules.scrollforwarder.ExpoScrollForwarderModule"]
+  }
+}
