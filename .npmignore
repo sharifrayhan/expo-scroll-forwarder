@@ -1,0 +1,11 @@
+node_modules/
+.git/
+.gitignore
+*.log
+*.swp
+.DS_Store
+package-lock.json
+tsconfig.json
+.vscode/
+.idea/
+*.tgz
