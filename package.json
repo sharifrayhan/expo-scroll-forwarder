@@ -1,7 +1,7 @@
 {
   "name": "expo-scroll-forwarder",
   "version": "0.1.0",
-  "description": "My new module",
+  "description": "Forward scroll gestures from any view to a ScrollView in React Native and Expo.",
   "main": "build/index.js",
   "types": "build/index.d.ts",
   "scripts": {
