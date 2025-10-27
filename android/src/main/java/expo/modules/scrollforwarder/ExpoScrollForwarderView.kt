@@ -5,12 +5,10 @@ import android.content.Context
 import android.view.GestureDetector
 import android.view.MotionEvent
 import android.view.View
-import android.view.ViewGroup
+import android.widget.ScrollView
 import android.view.animation.DecelerateInterpolator
 import androidx.core.view.GestureDetectorCompat
-import com.facebook.react.views.scroll.ReactScrollView
 import expo.modules.kotlin.AppContext
-import expo.modules.kotlin.viewevent.EventDispatcher
 import expo.modules.kotlin.views.ExpoView
 import kotlin.math.abs
 
@@ -22,7 +20,7 @@ class ExpoScrollForwarderView(context: Context, appContext: AppContext) : ExpoVi
       tryFindScrollView()
     }
 
-  private var reactScrollView: ReactScrollView? = null
+  private var targetScrollView: ScrollView? = null
   private var gestureDetector: GestureDetectorCompat
   private var isScrolling = false
   private var initialScrollY = 0
@@ -35,7 +33,7 @@ class ExpoScrollForwarderView(context: Context, appContext: AppContext) : ExpoVi
   }
 
   override fun onInterceptTouchEvent(ev: MotionEvent): Boolean {
-    val scrollView = reactScrollView ?: return super.onInterceptTouchEvent(ev)
+    val scrollView = targetScrollView ?: return super.onInterceptTouchEvent(ev)
     
     when (ev.action) {
       MotionEvent.ACTION_DOWN -> {
@@ -50,8 +48,8 @@ class ExpoScrollForwarderView(context: Context, appContext: AppContext) : ExpoVi
         // Check if this is a vertical scroll gesture
         if (!isScrolling && abs(deltaY) > 10) {
           // Calculate if the gesture is more vertical than horizontal
-          val initialX = ev.getHistoricalX(0)
-          val initialY = ev.getHistoricalY(0)
+          val initialX = if (ev.historySize > 0) ev.getHistoricalX(0) else ev.x
+          val initialY = if (ev.historySize > 0) ev.getHistoricalY(0) else ev.y
           val deltaX = ev.x - initialX
           val deltaYCheck = ev.y - initialY
           
@@ -67,7 +65,7 @@ class ExpoScrollForwarderView(context: Context, appContext: AppContext) : ExpoVi
   }
 
   override fun onTouchEvent(event: MotionEvent): Boolean {
-    val scrollView = reactScrollView ?: return super.onTouchEvent(event)
+    val scrollView = targetScrollView ?: return super.onTouchEvent(event)
     
     gestureDetector.onTouchEvent(event)
     
@@ -137,7 +135,7 @@ class ExpoScrollForwarderView(context: Context, appContext: AppContext) : ExpoVi
     }
   }
 
-  private fun startDecayAnimation(scrollView: ReactScrollView, velocity: Float) {
+  private fun startDecayAnimation(scrollView: ScrollView, velocity: Float) {
     var currentVelocity = velocity.coerceIn(-5000f, 5000f)
     val startOffset = scrollView.scrollY
     var currentOffset = startOffset.toFloat()
@@ -182,21 +180,9 @@ class ExpoScrollForwarderView(context: Context, appContext: AppContext) : ExpoVi
     }
   }
 
-  private fun triggerRefresh(scrollView: ReactScrollView) {
-    // Find RefreshControl if it exists
-    for (i in 0 until scrollView.childCount) {
-      val child = scrollView.getChildAt(i)
-      // React Native's RefreshControl detection
-      if (child.javaClass.simpleName.contains("RefreshControl")) {
-        try {
-          val method = child.javaClass.getMethod("setRefreshing", Boolean::class.java)
-          method.invoke(child, true)
-        } catch (e: Exception) {
-          // RefreshControl not available or different implementation
-        }
-        break
-      }
-    }
+  private fun triggerRefresh(scrollView: ScrollView) {
+    // Simply scroll to refresh position and let React Native's RefreshControl handle it
+    scrollView.scrollY = -140
   }
 
   private fun stopDecayAnimation() {
@@ -207,7 +193,7 @@ class ExpoScrollForwarderView(context: Context, appContext: AppContext) : ExpoVi
   private fun tryFindScrollView() {
     val tag = scrollViewTag ?: return
     
-    reactScrollView = appContext?.findView(tag) as? ReactScrollView
+    targetScrollView = appContext?.findView(tag) as? ScrollView
   }
 
   inner class GestureListener : GestureDetector.SimpleOnGestureListener() {
