@@ -1,4 +1,5 @@
 import ExpoModulesCore
+import UIKit
 
 class ExpoScrollForwarderView: ExpoView, UIGestureRecognizerDelegate {
   var scrollViewTag: Int? {
@@ -8,6 +9,7 @@ class ExpoScrollForwarderView: ExpoView, UIGestureRecognizerDelegate {
   }
 
   private var rctScrollView: RCTScrollView?
+  private var rctRefreshCtrl: UIRefreshControl?
   private var cancelGestureRecognizers: [UIGestureRecognizer]?
   private var animTimer: Timer?
   private var initialOffset: CGFloat = 0.0
@@ -36,7 +38,6 @@ class ExpoScrollForwarderView: ExpoView, UIGestureRecognizerDelegate {
     if gestureRecognizer is UIPanGestureRecognizer, otherGestureRecognizer is UIPanGestureRecognizer {
       return false
     }
-
     return true
   }
 
@@ -68,7 +69,6 @@ class ExpoScrollForwarderView: ExpoView, UIGestureRecognizerDelegate {
       if sv.contentOffset.y < 0 {
         sv.contentOffset.y = 0
       }
-
       self.initialOffset = sv.contentOffset.y
     }
 
@@ -78,7 +78,6 @@ class ExpoScrollForwarderView: ExpoView, UIGestureRecognizerDelegate {
       if sv.contentOffset.y <= -130, !didImpact {
         let generator = UIImpactFeedbackGenerator(style: .light)
         generator.impactOccurred()
-
         self.didImpact = true
       }
     }
@@ -88,16 +87,7 @@ class ExpoScrollForwarderView: ExpoView, UIGestureRecognizerDelegate {
       self.didImpact = false
 
       if sv.contentOffset.y <= -130 {
-        // Trigger refresh control programmatically
-        if let refreshControl = sv.refreshControl {
-          // Animate to proper refresh position
-          UIView.animate(withDuration: 0.3, delay: 0, options: .beginFromCurrentState, animations: {
-            sv.contentOffset = CGPoint(x: 0, y: -65)
-          }, completion: { _ in
-            refreshControl.beginRefreshing()
-            refreshControl.sendActions(for: .valueChanged)
-          })
-        }
+        self.triggerRefresh()
         return
       }
 
@@ -109,23 +99,43 @@ class ExpoScrollForwarderView: ExpoView, UIGestureRecognizerDelegate {
     }
   }
 
+  func triggerRefresh() {
+    guard let sv = self.rctScrollView?.scrollView,
+          let refreshControl = sv.refreshControl else {
+      return
+    }
+
+    // Animate to the proper refresh position
+    UIView.animate(withDuration: 0.3, delay: 0, options: .beginFromCurrentState, animations: {
+      sv.contentOffset = CGPoint(x: 0, y: -65)
+    }, completion: { [weak self] _ in
+      // Begin refreshing and trigger the control changed event
+      refreshControl.beginRefreshing()
+      
+      // Use the proper RCT method if available (for React Native refresh control)
+      if refreshControl.responds(to: Selector(("forwarderBeginRefreshing"))) {
+        refreshControl.perform(Selector(("forwarderBeginRefreshing")))
+      } else {
+        // Fallback: trigger the valueChanged action manually
+        refreshControl.sendActions(for: .valueChanged)
+      }
+    })
+  }
+
   func startDecayAnimation(_ translation: CGFloat, _ velocity: CGFloat) {
     guard let sv = self.rctScrollView?.scrollView else {
       return
     }
 
     var velocity = velocity
-
     self.enableCancelGestureRecognizers()
 
-    if velocity > 0 {
-      velocity = min(velocity, 5000)
-    } else {
-      velocity = max(velocity, -5000)
-    }
+    velocity = velocity > 0 ? min(velocity, 5000) : max(velocity, -5000)
 
     var animTranslation = -translation
-    self.animTimer = Timer.scheduledTimer(withTimeInterval: 1.0 / 120, repeats: true) { _ in
+    self.animTimer = Timer.scheduledTimer(withTimeInterval: 1.0 / 120, repeats: true) { [weak self] _ in
+      guard let self = self else { return }
+      
       velocity *= 0.9875
       animTranslation = (-velocity / 120) + animTranslation
 
@@ -137,7 +147,6 @@ class ExpoScrollForwarderView: ExpoView, UIGestureRecognizerDelegate {
         } else {
           sv.contentOffset.y = 0
         }
-
         self.stopTimer()
         return
       } else {
@@ -154,7 +163,6 @@ class ExpoScrollForwarderView: ExpoView, UIGestureRecognizerDelegate {
     if offset < 0 {
       return offset - (offset * 0.55)
     }
-
     return offset
   }
 
@@ -167,6 +175,8 @@ class ExpoScrollForwarderView: ExpoView, UIGestureRecognizerDelegate {
 
     self.rctScrollView = self.appContext?
       .findView(withTag: scrollViewTag, ofType: RCTScrollView.self)
+    
+    self.rctRefreshCtrl = self.rctScrollView?.scrollView?.refreshControl
 
     self.addCancelGestureRecognizers()
   }
