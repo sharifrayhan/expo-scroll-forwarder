@@ -88,8 +88,16 @@ class ExpoScrollForwarderView: ExpoView, UIGestureRecognizerDelegate {
       self.didImpact = false
 
       if sv.contentOffset.y <= -130 {
-        // Trigger refresh by setting content offset
-        sv.setContentOffset(CGPoint(x: 0, y: -140), animated: true)
+        // Trigger refresh control programmatically
+        if let refreshControl = sv.refreshControl {
+          // Animate to proper refresh position
+          UIView.animate(withDuration: 0.3, delay: 0, options: .beginFromCurrentState, animations: {
+            sv.contentOffset = CGPoint(x: 0, y: -65)
+          }, completion: { _ in
+            refreshControl.beginRefreshing()
+            refreshControl.sendActions(for: .valueChanged)
+          })
+        }
         return
       }
 
