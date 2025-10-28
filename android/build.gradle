@@ -41,3 +41,8 @@ android {
     abortOnError false
   }
 }
+
+// Add the dependencies block here
+dependencies {
+  implementation 'com.facebook.react:react-android'
+}
