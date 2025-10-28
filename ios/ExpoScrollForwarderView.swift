@@ -1,6 +1,7 @@
 import ExpoModulesCore
-import UIKit
 
+// This view will be used as a native component. Make sure to inherit from `ExpoView`
+// to apply the proper styling (e.g. border radius and shadows).
 class ExpoScrollForwarderView: ExpoView, UIGestureRecognizerDelegate {
   var scrollViewTag: Int? {
     didSet {
@@ -9,7 +10,7 @@ class ExpoScrollForwarderView: ExpoView, UIGestureRecognizerDelegate {
   }
 
   private var rctScrollView: RCTScrollView?
-  private var rctRefreshCtrl: UIRefreshControl?
+  private var rctRefreshCtrl: RCTRefreshControl?
   private var cancelGestureRecognizers: [UIGestureRecognizer]?
   private var animTimer: Timer?
   private var initialOffset: CGFloat = 0.0
@@ -34,13 +35,17 @@ class ExpoScrollForwarderView: ExpoView, UIGestureRecognizerDelegate {
     self.cancelGestureRecognizers = [lpg, tg]
   }
 
+  // We don't want to recognize the scroll pan gesture and the swipe back gesture together
   func gestureRecognizer(_ gestureRecognizer: UIGestureRecognizer, shouldRecognizeSimultaneouslyWith otherGestureRecognizer: UIGestureRecognizer) -> Bool {
     if gestureRecognizer is UIPanGestureRecognizer, otherGestureRecognizer is UIPanGestureRecognizer {
       return false
     }
+
     return true
   }
 
+  // We only want the "scroll" gesture to happen whenever the pan is vertical, otherwise it will
+  // interfere with the native swipe back gesture.
   override func gestureRecognizerShouldBegin(_ gestureRecognizer: UIGestureRecognizer) -> Bool {
     guard let gestureRecognizer = gestureRecognizer as? UIPanGestureRecognizer else {
       return true
@@ -50,10 +55,14 @@ class ExpoScrollForwarderView: ExpoView, UIGestureRecognizerDelegate {
     return abs(velocity.y) > abs(velocity.x)
   }
 
+  // This will be used to cancel the scroll animation whenever we tap inside of the header. We don't need another
+  // recognizer for this one.
   override func touchesBegan(_ touches: Set<UITouch>, with event: UIEvent?) {
     self.stopTimer()
   }
 
+  // This will be used to cancel the animation whenever we press inside of the scroll view. We don't want to change
+  // the scroll view gesture's delegate, so we add an additional recognizer to detect this.
   @IBAction func callOnPress(_ sender: UITapGestureRecognizer) {
     self.stopTimer()
   }
@@ -69,6 +78,7 @@ class ExpoScrollForwarderView: ExpoView, UIGestureRecognizerDelegate {
       if sv.contentOffset.y < 0 {
         sv.contentOffset.y = 0
       }
+
       self.initialOffset = sv.contentOffset.y
     }
 
@@ -78,6 +88,7 @@ class ExpoScrollForwarderView: ExpoView, UIGestureRecognizerDelegate {
       if sv.contentOffset.y <= -130, !didImpact {
         let generator = UIImpactFeedbackGenerator(style: .light)
         generator.impactOccurred()
+
         self.didImpact = true
       }
     }
@@ -87,10 +98,20 @@ class ExpoScrollForwarderView: ExpoView, UIGestureRecognizerDelegate {
       self.didImpact = false
 
       if sv.contentOffset.y <= -130 {
-        self.triggerRefresh()
+        if let ctrl = self.rctRefreshCtrl {
+          if ctrl.responds(to: Selector(("forwarderBeginRefreshing"))) {
+            ctrl.perform(Selector(("forwarderBeginRefreshing")))
+          } else {
+            ctrl.beginRefreshing()
+            ctrl.sendActions(for: .valueChanged)
+          }
+        }
+
         return
       }
 
+      // A check for a velocity under 250 prevents animations from occurring when they wouldn't in a normal
+      // scroll view
       if abs(velocity) < 250, sv.contentOffset.y >= 0 {
         return
       }
@@ -99,43 +120,23 @@ class ExpoScrollForwarderView: ExpoView, UIGestureRecognizerDelegate {
     }
   }
 
-  func triggerRefresh() {
-    guard let sv = self.rctScrollView?.scrollView,
-          let refreshControl = sv.refreshControl else {
-      return
-    }
-
-    // Animate to the proper refresh position
-    UIView.animate(withDuration: 0.3, delay: 0, options: .beginFromCurrentState, animations: {
-      sv.contentOffset = CGPoint(x: 0, y: -65)
-    }, completion: { [weak self] _ in
-      // Begin refreshing and trigger the control changed event
-      refreshControl.beginRefreshing()
-      
-      // Use the proper RCT method if available (for React Native refresh control)
-      if refreshControl.responds(to: Selector(("forwarderBeginRefreshing"))) {
-        refreshControl.perform(Selector(("forwarderBeginRefreshing")))
-      } else {
-        // Fallback: trigger the valueChanged action manually
-        refreshControl.sendActions(for: .valueChanged)
-      }
-    })
-  }
-
   func startDecayAnimation(_ translation: CGFloat, _ velocity: CGFloat) {
     guard let sv = self.rctScrollView?.scrollView else {
       return
     }
 
     var velocity = velocity
+
     self.enableCancelGestureRecognizers()
 
-    velocity = velocity > 0 ? min(velocity, 5000) : max(velocity, -5000)
+    if velocity > 0 {
+      velocity = min(velocity, 5000)
+    } else {
+      velocity = max(velocity, -5000)
+    }
 
     var animTranslation = -translation
-    self.animTimer = Timer.scheduledTimer(withTimeInterval: 1.0 / 120, repeats: true) { [weak self] _ in
-      guard let self = self else { return }
-      
+    self.animTimer = Timer.scheduledTimer(withTimeInterval: 1.0 / 120, repeats: true) { _ in
       velocity *= 0.9875
       animTranslation = (-velocity / 120) + animTranslation
 
@@ -147,6 +148,7 @@ class ExpoScrollForwarderView: ExpoView, UIGestureRecognizerDelegate {
         } else {
           sv.contentOffset.y = 0
         }
+
         self.stopTimer()
         return
       } else {
@@ -163,6 +165,7 @@ class ExpoScrollForwarderView: ExpoView, UIGestureRecognizerDelegate {
     if offset < 0 {
       return offset - (offset * 0.55)
     }
+
     return offset
   }
 
@@ -171,12 +174,13 @@ class ExpoScrollForwarderView: ExpoView, UIGestureRecognizerDelegate {
       return
     }
 
+    // Before we switch to a different scrollview, we always want to remove the cancel gesture recognizer.
+    // Otherwise we might end up with duplicates when we switch back to that scrollview.
     self.removeCancelGestureRecognizers()
 
     self.rctScrollView = self.appContext?
       .findView(withTag: scrollViewTag, ofType: RCTScrollView.self)
-    
-    self.rctRefreshCtrl = self.rctScrollView?.scrollView?.refreshControl
+    self.rctRefreshCtrl = self.rctScrollView?.scrollView.refreshControl as? RCTRefreshControl
 
     self.addCancelGestureRecognizers()
   }
