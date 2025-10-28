@@ -7,7 +7,12 @@ class ExpoScrollForwarderModule : Module() {
   override fun definition() = ModuleDefinition {
     Name("ExpoScrollForwarder")
 
-    View(ExpoScrollForwarderView::class) {
+    // Use ViewManager instead of View
+    ViewManager {
+      View { context, appContext ->
+        ExpoScrollForwarderView(context, appContext)
+      }
+
       Prop("scrollViewTag") { view: ExpoScrollForwarderView, prop: Int ->
         view.scrollViewTag = prop
       }
