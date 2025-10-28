@@ -176,4 +176,48 @@ class ExpoScrollForwarderView(context: Context, appContext: AppContext) : ExpoVi
   }
 
   private fun triggerRefresh(scrollView: ReactScrollView) {
-    // Trigge
+    // Trigger refresh by finding and activating the refresh control
+    try {
+      for (i in 0 until scrollView.childCount) {
+        val child = scrollView.getChildAt(i)
+        if (child.javaClass.simpleName.contains("Refresh")) {
+          // Try to invoke setRefreshing via reflection
+          val method = child.javaClass.getMethod("setRefreshing", Boolean::class.javaPrimitiveType)
+          method.invoke(child, true)
+          break
+        }
+      }
+    } catch (e: Exception) {
+      // Fallback: just scroll to trigger position
+      scrollView.scrollTo(0, -140)
+    }
+  }
+
+  private fun stopDecayAnimation() {
+    decayAnimator?.cancel()
+    decayAnimator = null
+  }
+
+  private fun tryFindScrollView() {
+    val tag = scrollViewTag ?: return
+    
+    reactScrollView = appContext?.findView(tag) as? ReactScrollView
+  }
+
+  inner class GestureListener : GestureDetector.SimpleOnGestureListener() {
+    override fun onDown(e: MotionEvent): Boolean {
+      stopDecayAnimation()
+      return true
+    }
+
+    override fun onSingleTapUp(e: MotionEvent): Boolean {
+      stopDecayAnimation()
+      return true
+    }
+  }
+
+  override fun onDetachedFromWindow() {
+    super.onDetachedFromWindow()
+    stopDecayAnimation()
+  }
+}
