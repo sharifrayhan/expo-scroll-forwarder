@@ -1,4 +1,5 @@
 import ExpoModulesCore
+import React
 
 class ExpoScrollForwarderView: ExpoView, UIGestureRecognizerDelegate {
   var scrollViewTag: Int? {

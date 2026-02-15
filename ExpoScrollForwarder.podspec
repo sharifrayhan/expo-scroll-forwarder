@@ -8,10 +8,14 @@ Pod::Spec.new do |s|
   s.platforms    = { :ios => '13.4' }
   s.source       = { git: '', tag: s.version } 
   s.static_framework = true
+  
   s.dependency 'ExpoModulesCore'
+  s.dependency 'React-Core'
+  
   s.pod_target_xcconfig = {
     'DEFINES_MODULE' => 'YES',
     'SWIFT_COMPILATION_MODE' => 'wholemodule'
   }
+  
   s.source_files = "src/ios/*.{h,m,mm,swift,hpp,cpp}"
 end
