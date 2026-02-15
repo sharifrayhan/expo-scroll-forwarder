@@ -4,5 +4,5 @@ import { ExpoScrollForwarderViewProps } from "./ExpoScrollForwarder.types";
 export function ExpoScrollForwarderView({
   children,
 }: ExpoScrollForwarderViewProps) {
-  return children; // cross-platform fallback
+  return children; // placeholder for Android
 }

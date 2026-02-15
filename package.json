@@ -1,43 +1,33 @@
 {
   "name": "expo-scroll-forwarder",
-  "version": "0.1.6",
-  "description": "Forward scroll gestures from any view to a ScrollView in React Native and Expo.",
-  "main": "build/index.js",
-  "types": "build/index.d.ts",
+  "version": "1.0.0",
+  "main": "index.ts",
+  "types": "index.ts",
+  "files": [
+    "src",
+    "index.ts",
+    "ExpoScrollForwarder.podspec",
+    "expo-module.config.json"
+  ],
+  "peerDependencies": {
+    "react": "*",
+    "react-native": "*",
+    "expo-modules-core": "*"
+  },
+  "devDependencies": {
+    "typescript": "^5.2.0",
+    "@types/react": "^18.2.0",
+    "@types/react-native": "^0.72.0",
+    "expo-modules-core": "*"
+  },
   "scripts": {
-    "build": "expo-module build",
-    "clean": "expo-module clean",
-    "lint": "expo-module lint",
-    "test": "expo-module test",
-    "prepare": "expo-module prepare",
-    "prepublishOnly": "expo-module prepublishOnly",
-    "expo-module": "expo-module",
-    "open:ios": "xed example/ios",
-    "open:android": "open -a \"Android Studio\" example/android"
+    "build": "tsc --build"
   },
   "keywords": [
-    "react-native",
     "expo",
-    "expo-scroll-forwarder",
-    "ExpoScrollForwarder"
-  ],
-  "repository": "https://github.com/sharifrayhan/expo-scroll-forwarder",
-  "bugs": {
-    "url": "https://github.com/sharifrayhan/expo-scroll-forwarder/issues"
-  },
-  "author": "Sharif Rayhan <sharifrayhan.official@gmail.com> (https://github.com/sharifrayhan)",
-  "license": "MIT",
-  "homepage": "https://github.com/sharifrayhan/expo-scroll-forwarder#readme",
-  "dependencies": {},
-  "devDependencies": {
-    "@types/react": "~19.1.0",
-    "expo-module-scripts": "^5.0.7",
-    "expo": "^54.0.18",
-    "react-native": "0.81.5"
-  },
-  "peerDependencies": {
-    "expo": "*",
-    "react": "*",
-    "react-native": "*"
-  }
+    "react-native",
+    "scroll",
+    "forwarder",
+    "module"
+  ]
 }
