@@ -1,11 +1,11 @@
 {
   "name": "expo-scroll-forwarder",
   "version": "1.0.1",
-  "main": "index.ts",
-  "types": "index.ts",
+  "main": "build/index.js",
+  "types": "build/index.d.ts",
   "files": [
-    "src",
-    "index.ts",
+    "build",
+    "src/ios",
     "ExpoScrollForwarder.podspec",
     "expo-module.config.json"
   ],
@@ -21,7 +21,8 @@
     "expo-modules-core": "*"
   },
   "scripts": {
-    "build": "tsc --build"
+    "build": "tsc --build",
+    "prepare": "yarn build"
   },
   "keywords": [
     "expo",
