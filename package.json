@@ -9,7 +9,7 @@
     "build",
     "src/ios",
     "ExpoScrollForwarder.podspec",
-    "expo-module.config.json",
+    "expo-plugin.js",
     "README.md",
     "LICENSE"
   ],
