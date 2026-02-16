@@ -1,13 +1,30 @@
 {
   "name": "expo-scroll-forwarder",
   "version": "1.0.2",
+  "description": "Forward scroll gestures from a UIView to a UIScrollView in Expo.",
   "main": "build/index.js",
   "types": "build/index.d.ts",
+  "sideEffects": false,
   "files": [
     "build",
     "src/ios",
     "ExpoScrollForwarder.podspec",
-    "expo-module.config.json"
+    "expo-module.config.json",
+    "README.md",
+    "LICENSE"
+  ],
+  "scripts": {
+    "build": "tsc --build",
+    "clean": "rimraf build",
+    "prepare": "yarn build"
+  },
+  "keywords": [
+    "expo",
+    "react-native",
+    "expo-module",
+    "scroll",
+    "gesture",
+    "ios"
   ],
   "peerDependencies": {
     "react": "*",
@@ -18,18 +35,9 @@
     "typescript": "^5.2.0",
     "@types/react": "^18.2.0",
     "@types/react-native": "^0.72.0",
-    "expo-modules-core": "*"
+    "expo-modules-core": "*",
+    "rimraf": "^5.0.0"
   },
-  "scripts": {
-    "build": "tsc --build",
-    "prepare": "yarn build"
-  },
-  "keywords": [
-    "expo",
-    "react-native",
-    "scroll",
-    "forwarder",
-    "module"
-  ],
+  "license": "MIT",
   "packageManager": "yarn@1.22.22+sha512.a6b2f7906b721bba3d67d4aff083df04dad64c399707841b7acf00f6b133b7ac24255f2652fa22ae3534329dc6180534e98d17432037ff6fd140556e2bb3137e"
 }
