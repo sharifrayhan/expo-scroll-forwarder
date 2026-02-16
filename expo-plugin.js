@@ -1,30 +1,19 @@
-const { withDangerousMod } = require("@expo/config-plugins");
-const fs = require("fs");
-const path = require("path");
+const { withPodfile } = require("@expo/config-plugins");
 
 function withExpoScrollForwarder(config) {
-  return withDangerousMod(config, [
-    "ios",
-    (config) => {
-      const podfilePath = path.join(
-        config.modRequest.projectRoot,
-        "ios",
-        "Podfile",
-      );
+  return withPodfile(config, (config) => {
+    const podLine =
+      "pod 'ExpoScrollForwarder', :path => '../node_modules/expo-scroll-forwarder'";
 
-      if (fs.existsSync(podfilePath)) {
-        const podfile = fs.readFileSync(podfilePath, "utf8");
-        if (!podfile.includes("pod 'ExpoScrollForwarder'")) {
-          fs.writeFileSync(
-            podfilePath,
-            podfile +
-              `\npod 'ExpoScrollForwarder', :path => '../node_modules/expo-scroll-forwarder'\n`,
-          );
-        }
-      }
-      return config;
-    },
-  ]);
+    if (!config.modResults.contents.includes("ExpoScrollForwarder")) {
+      config.modResults.contents = config.modResults.contents.replace(
+        /use_expo_modules!\n/,
+        `use_expo_modules!\n  ${podLine}\n`,
+      );
+    }
+
+    return config;
+  });
 }
 
 module.exports = withExpoScrollForwarder;
