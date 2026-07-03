@@ -5,7 +5,7 @@ Pod::Spec.new do |s|
   s.description    = 'Expo module that forwards pan gestures from a plain view (e.g. a sticky header) to a UIScrollView, with native-feeling deceleration, rubber-banding, and pull-to-refresh.'
   s.author         = 'Rayhan Nafi'
   s.license        = 'MIT'
-  s.homepage       = 'https://github.com/rayhannafi/expo-scroll-forwarder'
+  s.homepage       = 'https://github.com/sharifrayhan/expo-scroll-forwarder'
   s.platforms      = { :ios => '15.1' }
   s.source         = { git: '' }
   s.static_framework = true

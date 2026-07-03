@@ -25,12 +25,12 @@
   ],
   "repository": {
     "type": "git",
-    "url": "https://github.com/rayhannafi/expo-scroll-forwarder.git"
+    "url": "https://github.com/sharifrayhan/expo-scroll-forwarder.git"
   },
   "bugs": {
-    "url": "https://github.com/rayhannafi/expo-scroll-forwarder/issues"
+    "url": "https://github.com/sharifrayhan/expo-scroll-forwarder/issues"
   },
-  "homepage": "https://github.com/rayhannafi/expo-scroll-forwarder#readme",
+  "homepage": "https://github.com/sharifrayhan/expo-scroll-forwarder#readme",
   "author": "Rayhan Nafi <rayhannafi.connect@gmail.com>",
   "license": "MIT",
   "files": [
