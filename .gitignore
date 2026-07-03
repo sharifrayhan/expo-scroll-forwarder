@@ -16,3 +16,10 @@ ios/Pods/
 
 # Misc
 .DS_Store
+
+# Editor
+.vscode/
+.idea/
+
+# AI assistant
+.claude/

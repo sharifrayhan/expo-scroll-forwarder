@@ -6,16 +6,14 @@ import UIKit
  * custom physics that match native scrolling: velocity-based deceleration,
  * rubber-band damping past the top edge, and pull-to-refresh with haptics.
  *
- * Ported from the Bluesky social app's in-tree expo-scroll-forwarder module
- * (bluesky-social/social-app, MIT), with two changes so it works in any Expo
- * app without patching React Native:
+ * Works in any Expo app without patching React Native:
  *
  * - The target is resolved to a plain UIScrollView instead of RCTScrollView,
  *   which works on both the old (Paper) and new (Fabric) architecture and
  *   avoids linking against React headers.
  * - Pull-to-refresh calls RCTRefreshControl's forwarderBeginRefreshing when
- *   the host app has patched it in (as Bluesky does), and otherwise replicates
- *   that patch's behavior using public UIKit API.
+ *   the host app has patched one in, and otherwise replicates that behavior
+ *   using public UIKit API.
  */
 class ExpoScrollForwarderView: ExpoView, UIGestureRecognizerDelegate {
   var scrollViewTag: Int? {
@@ -189,11 +187,11 @@ class ExpoScrollForwarderView: ExpoView, UIGestureRecognizerDelegate {
   }
 
   /*
-   * Bluesky patches RCTRefreshControl with a forwarderBeginRefreshing method
+   * Some apps patch RCTRefreshControl with a forwarderBeginRefreshing method
    * that scrolls the spinner into view and fires the JS onRefresh event. Use
-   * it when the host app has that patch applied; otherwise replicate it with
-   * public API: animate to the resting offset the patch uses (-65), then start
-   * the spinner and emit .valueChanged, which fires the target-action
+   * it when the host app has such a patch applied; otherwise replicate it
+   * with public API: animate to the resting offset (-65), then start the
+   * spinner and emit .valueChanged, which fires the target-action
    * RCTRefreshControl registers in its initializer and emits onRefresh.
    */
   func beginRefreshing() {

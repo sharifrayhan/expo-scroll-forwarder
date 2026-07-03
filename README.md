@@ -3,16 +3,11 @@
 An Expo native module that forwards scroll gestures from a plain view to a
 scroll view. This lets a fixed or sticky header (that is not itself inside the
 scroll view) respond to drag gestures and scroll the content below it -- the
-interaction used on the Bluesky app's profile screen, where dragging the
+interaction seen on profile screens in popular social apps, where dragging the
 profile header scrolls the feed underneath.
 
-The iOS implementation is extracted from the Bluesky social app's in-tree
-[`expo-scroll-forwarder`](https://github.com/bluesky-social/social-app/tree/main/modules/expo-scroll-forwarder)
-module (MIT), adapted to work in any Expo app without patching React Native,
-plus a new native Android implementation.
-
-> **Note:** version 2.0.0 is a complete rewrite. It shares no code with, and
-> is not compatible with, releases 1.x and below.
+> **Note:** version 2.x is a complete rewrite. It shares no code with, and is
+> not compatible with, releases 1.x and below.
 
 ## Features
 
@@ -90,8 +85,9 @@ export function ProfileScreen() {
 }
 ```
 
-With multiple tabs/lists under one header (like Bluesky's profile screen),
-update the tag whenever the focused list changes:
+With multiple tabs/lists under one header (a profile screen with Posts /
+Replies / Media tabs, for example), update the tag whenever the focused list
+changes:
 
 ```tsx
 useEffect(() => {
@@ -116,28 +112,19 @@ native vertical scroll view.
 When the user drags past -130 pt, the module triggers the target's
 `RefreshControl`:
 
-- If the host app has Bluesky's `RCTRefreshControl` patch applied (which adds
-  a `forwarderBeginRefreshing` method), the module detects it at runtime and
-  calls it, giving exactly the behavior Bluesky ships.
-- Otherwise the module replicates that patch with public UIKit API: it
-  animates the content offset to -65 pt over 0.3 s (the same values the patch
-  uses), then starts the spinner and emits the `valueChanged` control event,
-  which fires the JS `onRefresh` handler.
+- If the host app has a patched `RCTRefreshControl` exposing a
+  `forwarderBeginRefreshing` method, the module detects it at runtime and
+  calls it.
+- Otherwise the module handles it with public UIKit API: it animates the
+  content offset to -65 pt over 0.3 s, then starts the spinner and emits the
+  `valueChanged` control event, which fires the JS `onRefresh` handler.
 
-So `onRefresh` works out of the box, with or without the patch.
+So `onRefresh` works out of the box, with or without a patch.
 
 ## Android notes
 
-Bluesky ships this module as iOS-only. Their Android app gets a similar feel
-for free from layout: the profile header is an absolutely-positioned overlay
-with `pointerEvents="box-none"`, so touches on non-interactive parts of the
-header pass through to the list behind it, which scrolls natively.
-
-This package instead adds a real native Android implementation, for layouts
-where pass-through is not possible (headers with a solid touchable surface,
-or targets that are not directly underneath). It re-dispatches the touch
-stream into the target scroll view, which keeps native fling physics.
-Differences from iOS:
+The Android implementation re-dispatches the touch stream into the target
+scroll view, which keeps native fling physics. Differences from iOS:
 
 - Pull-to-refresh forwarding is not implemented (Android's `RefreshControl`
   is a `SwipeRefreshLayout` wrapper that only reacts to touches on itself).
@@ -147,8 +134,7 @@ Differences from iOS:
 ### Disabling forwarding on Android
 
 The native view only activates when it has a tag, so passing `null` turns it
-into a plain container. To get exactly the behavior Bluesky ships (forwarding
-on iOS, layout pass-through on Android):
+into a plain container:
 
 ```tsx
 <ExpoScrollForwarderView
@@ -157,18 +143,17 @@ on iOS, layout pass-through on Android):
 </ExpoScrollForwarderView>
 ```
 
-### Alternative: Bluesky's Android layout trick
+### Alternative: layout pass-through on Android
 
-Instead of forwarding gestures, Bluesky renders the header as an
-absolutely-positioned overlay on top of the list and, on Android only, marks
+Instead of forwarding gestures, you can render the header as an
+absolutely-positioned overlay on top of the list and, on Android only, mark
 it `pointerEvents="box-none"`. Touches on non-interactive parts of the header
 then pass through to the list behind it, which scrolls natively -- no native
 module involved. Buttons and other touchables inside the header keep working
 because `box-none` only makes the container itself transparent to touches,
 not its children.
 
-A minimal version of that pattern (with a collapsing header, like Bluesky's
-profile screen):
+A minimal version of that pattern (with a collapsing header):
 
 ```tsx
 import {useState} from 'react'
@@ -214,7 +199,7 @@ export function ProfileScreen() {
         The header overlays the top of the list. On Android, box-none lets
         drags on non-interactive areas fall through to the list underneath,
         which scrolls natively. On iOS, touches never fall through overlaid
-        views this way, which is why the forwarder module exists.
+        views this way, which is why the forwarder exists.
       */}
       <Animated.View
         pointerEvents={Platform.OS === 'ios' ? 'auto' : 'box-none'}
@@ -241,8 +226,7 @@ Requirements for the pass-through to work on Android:
   `box-none` (or have no background/touch handlers), otherwise it swallows
   the touch before it reaches the list.
 - Drags that start on a touchable (a button, a pressable image) will not
-  scroll -- the touchable claims the gesture. This matches Bluesky's actual
-  Android behavior.
+  scroll -- the touchable claims the gesture.
 
 ## How it works
 
@@ -267,11 +251,9 @@ npm run build        # compiles src/ to build/ with type declarations
 npm publish          # prepublishOnly runs the build automatically
 ```
 
-## Credits
+## Disclaimer
 
-The iOS implementation and the interaction design come from the
-[Bluesky social app](https://github.com/bluesky-social/social-app) (MIT
-license, copyright Bluesky Social PBC).
+This is a community package and is not affiliated with or endorsed by Expo.
 
 ## License
 
