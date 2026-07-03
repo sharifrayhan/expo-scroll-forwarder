@@ -1,5 +1,13 @@
 # Changelog
 
+## 2.0.4
+
+- iOS: fix the refresh spinner rendering static (not spinning) after the
+  content settles in the unpatched fallback. UIRefreshControl can freeze its
+  spin animation when begun programmatically while the content is still
+  animating; the control is now restarted (without animation) once the
+  settle completes, which reliably starts the spin.
+
 ## 2.0.3
 
 - iOS: fix pull-to-refresh in the unpatched (public API) fallback.

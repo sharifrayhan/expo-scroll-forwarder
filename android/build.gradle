@@ -1,7 +1,7 @@
 apply plugin: 'com.android.library'
 
 group = 'expo.modules.scrollforwarder'
-version = '2.0.3'
+version = '2.0.4'
 
 def expoModulesCorePlugin = new File(project(":expo-modules-core").projectDir.absolutePath, "ExpoModulesCorePlugin.gradle")
 apply from: expoModulesCorePlugin
@@ -34,8 +34,8 @@ if (useManagedAndroidSdkVersions) {
 android {
   namespace "expo.modules.scrollforwarder"
   defaultConfig {
-    versionCode 4
-    versionName "2.0.3"
+    versionCode 5
+    versionName "2.0.4"
   }
   lintOptions {
     abortOnError false

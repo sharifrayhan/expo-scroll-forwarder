@@ -274,6 +274,21 @@ class ExpoScrollForwarderView: ExpoView, UIGestureRecognizerDelegate {
       options: [.beginFromCurrentState, .curveEaseOut],
       animations: {
         sv.contentOffset = CGPoint(x: 0, y: restingOffset)
+      },
+      completion: { _ in
+        /*
+         * UIRefreshControl can render a static, non-spinning spinner when
+         * begun programmatically while the content is still animating.
+         * Restarting it once the content has settled reliably starts the
+         * spin animation. Guarded so a refresh that already ended is left
+         * alone, and wrapped to avoid a visible blink from the inset
+         * adjustments of end/begin.
+         */
+        guard refreshControl.isRefreshing else { return }
+        UIView.performWithoutAnimation {
+          refreshControl.endRefreshing()
+          refreshControl.beginRefreshing()
+        }
       }
     )
   }
