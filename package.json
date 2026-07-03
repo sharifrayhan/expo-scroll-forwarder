@@ -1,6 +1,6 @@
 {
   "name": "expo-scroll-forwarder",
-  "version": "2.0.1",
+  "version": "2.0.2",
   "description": "Expo native module that forwards scroll gestures from a plain view (e.g. a sticky profile header) to a scroll view, with native scroll physics. Works on iOS and Android, no-op on web.",
   "main": "build/index.js",
   "types": "build/index.d.ts",

@@ -42,8 +42,8 @@ class ExpoScrollForwarderView(context: Context, appContext: AppContext) : ExpoVi
   override fun onInterceptTouchEvent(ev: MotionEvent): Boolean {
     when (ev.actionMasked) {
       MotionEvent.ACTION_DOWN -> {
-        downX = ev.x
-        downY = ev.y
+        downX = ev.rawX
+        downY = ev.rawY
         forwarding = false
         stopOngoingFling(ev)
       }
@@ -61,8 +61,8 @@ class ExpoScrollForwarderView(context: Context, appContext: AppContext) : ExpoVi
   override fun onTouchEvent(ev: MotionEvent): Boolean {
     when (ev.actionMasked) {
       MotionEvent.ACTION_DOWN -> {
-        downX = ev.x
-        downY = ev.y
+        downX = ev.rawX
+        downY = ev.rawY
         forwarding = false
       }
       MotionEvent.ACTION_MOVE -> {
@@ -84,12 +84,20 @@ class ExpoScrollForwarderView(context: Context, appContext: AppContext) : ExpoVi
     return true
   }
 
+  /*
+   * All gesture tracking uses raw (screen) coordinates rather than view-local
+   * ones. This view typically translates together with a collapsing header
+   * while the drag is scrolling the list, so local coordinates would have the
+   * header's own movement superimposed on them, creating a feedback loop:
+   * scroll -> header moves -> next delta is doubled -> visible jitter and
+   * stalling. Raw coordinates only track the finger.
+   */
   private fun shouldStartForwarding(ev: MotionEvent): Boolean {
     if (scrollViewTag == null) {
       return false
     }
-    val dx = ev.x - downX
-    val dy = ev.y - downY
+    val dx = ev.rawX - downX
+    val dy = ev.rawY - downY
     return abs(dy) > touchSlop && abs(dy) > abs(dx)
   }
 
@@ -125,6 +133,7 @@ class ExpoScrollForwarderView(context: Context, appContext: AppContext) : ExpoVi
     val copy = MotionEvent.obtain(ev)
     try {
       copy.action = action
+      copy.setLocation(ev.rawX, ev.rawY)
       scrollView.onTouchEvent(copy)
     } finally {
       copy.recycle()
@@ -135,6 +144,7 @@ class ExpoScrollForwarderView(context: Context, appContext: AppContext) : ExpoVi
     val scrollView = resolveScrollView() ?: return
     val copy = MotionEvent.obtain(ev)
     try {
+      copy.setLocation(ev.rawX, ev.rawY)
       scrollView.onTouchEvent(copy)
     } finally {
       copy.recycle()

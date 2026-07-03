@@ -1,5 +1,14 @@
 # Changelog
 
+## 2.0.2
+
+- Android: track and forward gestures using raw (screen) coordinates instead
+  of view-local ones. The wrapped header typically translates while the drag
+  scrolls the list, so local coordinates fed the header's own movement back
+  into the gesture -- causing jitter, doubled scroll deltas, and drags that
+  stalled and resumed. Raw coordinates only track the finger, which makes
+  forwarded scrolling smooth and reliable.
+
 ## 2.0.1
 
 - Fix Android Gradle configuration: the library did not set `compileSdk`,
