@@ -1,48 +1,57 @@
 {
   "name": "expo-scroll-forwarder",
-  "version": "1.0.3",
-  "description": "Forward scroll gestures from a UIView to a UIScrollView in Expo.",
+  "version": "2.0.0",
+  "description": "Expo native module that forwards scroll gestures from a plain view (e.g. a sticky profile header) to a scroll view, with native scroll physics. Works on iOS and Android, no-op on web.",
   "main": "build/index.js",
   "types": "build/index.d.ts",
   "sideEffects": false,
-  "files": [
-    "build",
-    "src/ios",
-    "ExpoScrollForwarder.podspec",
-    "expo-plugin.js",
-    "README.md",
-    "LICENSE"
-  ],
   "scripts": {
-    "build": "tsc --build",
-    "clean": "rimraf build",
-    "prepare": "yarn build"
+    "build": "tsc",
+    "clean": "node -e \"require('fs').rmSync('build', {recursive: true, force: true})\"",
+    "prepare": "npm run build",
+    "prepublishOnly": "npm run build"
   },
   "keywords": [
-    "expo",
     "react-native",
+    "expo",
     "expo-module",
     "scroll",
+    "scroll-forwarder",
     "gesture",
-    "ios"
+    "sticky-header",
+    "collapsible-header",
+    "ios",
+    "android"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/rayhannafi/expo-scroll-forwarder.git"
+  },
+  "bugs": {
+    "url": "https://github.com/rayhannafi/expo-scroll-forwarder/issues"
+  },
+  "homepage": "https://github.com/rayhannafi/expo-scroll-forwarder#readme",
+  "author": "Rayhan Nafi <rayhannafi.connect@gmail.com>",
+  "license": "MIT",
+  "files": [
+    "build",
+    "android",
+    "ios",
+    "src",
+    "expo-module.config.json",
+    "!android/build",
+    "!android/.gradle",
+    "!ios/build"
   ],
   "peerDependencies": {
+    "expo": "*",
     "react": "*",
-    "react-native": "*",
-    "expo-modules-core": "*"
+    "react-native": "*"
   },
   "devDependencies": {
-    "typescript": "^5.2.0",
-    "@types/react": "^18.2.0",
-    "@types/react-native": "^0.72.0",
-    "expo-modules-core": "*",
-    "rimraf": "^5.0.0"
-  },
-  "license": "MIT",
-  "expo": {
-    "plugins": [
-      "./expo-plugin.js"
-    ]
-  },
-  "packageManager": "yarn@1.22.22+sha512.a6b2f7906b721bba3d67d4aff083df04dad64c399707841b7acf00f6b133b7ac24255f2652fa22ae3534329dc6180534e98d17432037ff6fd140556e2bb3137e"
+    "@types/react": "~19.1.0",
+    "expo-module-scripts": "^5.0.8",
+    "expo-modules-core": "~3.0.30",
+    "typescript": "^5.9.0"
+  }
 }

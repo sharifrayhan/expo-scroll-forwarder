@@ -1,6 +1,9 @@
 MIT License
 
-Copyright (c) 2026 Expo Scroll Forwarder Contributors
+Copyright (c) 2026 Rayhan Nafi
+Portions copyright 2023-2026 Bluesky Social PBC (the iOS implementation is
+derived from the expo-scroll-forwarder module in bluesky-social/social-app,
+which is MIT licensed).
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
