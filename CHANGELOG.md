@@ -1,5 +1,20 @@
 # Changelog
 
+## 2.0.3
+
+- iOS: fix pull-to-refresh in the unpatched (public API) fallback.
+  - The spinner is now sized (`sizeToFit`) and started BEFORE the content
+    settles, so it is visible and spinning during the return animation
+    (previously it could remain invisible).
+  - On the new architecture, React Native's RCTPullToRefreshViewComponentView
+    reacts to the `refreshing` prop turning true by unconditionally shifting
+    contentOffset down by the spinner height, even when the control is
+    already refreshing -- which appeared as a second content stretch after
+    release. The fallback now detects that one-frame jump and cancels it,
+    settling at the spinner's resting offset in a single motion. On the old
+    architecture the extra shift never occurs and the detection simply times
+    out.
+
 ## 2.0.2
 
 - Android: track and forward gestures using raw (screen) coordinates instead

@@ -115,11 +115,15 @@ When the user drags past -130 pt, the module triggers the target's
 - If the host app has a patched `RCTRefreshControl` exposing a
   `forwarderBeginRefreshing` method, the module detects it at runtime and
   calls it.
-- Otherwise the module handles it with public UIKit API: it animates the
-  content offset to -65 pt over 0.3 s, then starts the spinner and emits the
-  `valueChanged` control event, which fires the JS `onRefresh` handler.
+- Otherwise the module handles it with public UIKit API: it starts the
+  spinner and emits the `valueChanged` control event (which fires the JS
+  `onRefresh` handler), then settles the content at the spinner's resting
+  offset in a single 0.3 s animation. On the new architecture it also
+  compensates for React Native's prop-driven begin-refresh, which would
+  otherwise shift the content a second time.
 
-So `onRefresh` works out of the box, with or without a patch.
+So `onRefresh` works out of the box, with or without a patch, on both
+architectures.
 
 ## Android notes
 

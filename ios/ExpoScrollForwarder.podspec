@@ -1,6 +1,6 @@
 Pod::Spec.new do |s|
   s.name           = 'ExpoScrollForwarder'
-  s.version        = '2.0.2'
+  s.version        = '2.0.3'
   s.summary        = 'Forward scroll gestures from a UIView to a UIScrollView'
   s.description    = 'Expo module that forwards pan gestures from a plain view (e.g. a sticky header) to a UIScrollView, with native-feeling deceleration, rubber-banding, and pull-to-refresh.'
   s.author         = 'Rayhan Nafi'

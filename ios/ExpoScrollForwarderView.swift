@@ -27,6 +27,7 @@ class ExpoScrollForwarderView: ExpoView, UIGestureRecognizerDelegate {
   private var animTimer: Timer?
   private var initialOffset: CGFloat = 0.0
   private var didImpact: Bool = false
+  private var refreshShiftObservation: NSKeyValueObservation?
 
   private var refreshControl: UIRefreshControl? {
     return self.scrollView?.refreshControl
@@ -53,6 +54,7 @@ class ExpoScrollForwarderView: ExpoView, UIGestureRecognizerDelegate {
 
   deinit {
     self.animTimer?.invalidate()
+    self.refreshShiftObservation?.invalidate()
   }
 
   // We don't want to recognize the scroll pan gesture and the swipe back gesture together
@@ -95,6 +97,13 @@ class ExpoScrollForwarderView: ExpoView, UIGestureRecognizerDelegate {
     let translation = sender.translation(in: self).y
 
     if sender.state == .began {
+      /*
+       * A new drag takes ownership of the offset; stop any pending
+       * refresh-shift compensation so it cannot fight the finger.
+       */
+      self.refreshShiftObservation?.invalidate()
+      self.refreshShiftObservation = nil
+
       if sv.contentOffset.y < 0 {
         sv.contentOffset.y = 0
       }
@@ -190,9 +199,13 @@ class ExpoScrollForwarderView: ExpoView, UIGestureRecognizerDelegate {
    * Some apps patch RCTRefreshControl with a forwarderBeginRefreshing method
    * that scrolls the spinner into view and fires the JS onRefresh event. Use
    * it when the host app has such a patch applied; otherwise replicate it
-   * with public API: animate to the resting offset (-65), then start the
-   * spinner and emit .valueChanged, which fires the target-action
-   * RCTRefreshControl registers in its initializer and emits onRefresh.
+   * with public API.
+   *
+   * Ordering matters in the fallback: the spinner is sized and started
+   * BEFORE the settle animation, so it is visible and spinning while the
+   * content returns, and (on the old architecture) RCTRefreshControl's
+   * refreshing-state guard prevents a second prop-driven animation. The new
+   * architecture needs the additional compensation below.
    */
   func beginRefreshing() {
     guard let sv = self.scrollView, let refreshControl = self.refreshControl else {
@@ -206,16 +219,61 @@ class ExpoScrollForwarderView: ExpoView, UIGestureRecognizerDelegate {
       return
     }
 
+    // Ensure the spinner has a real frame even if it has not been laid out yet
+    refreshControl.sizeToFit()
+
+    if !refreshControl.isRefreshing {
+      refreshControl.beginRefreshing()
+      refreshControl.sendActions(for: .valueChanged)
+    }
+
+    let restingOffset = -max(refreshControl.frame.height, 60)
+
+    /*
+     * On the new architecture, RCTPullToRefreshViewComponentView reacts to
+     * the JS `refreshing` prop turning true (which the app's onRefresh
+     * handler typically does) by unconditionally shifting contentOffset down
+     * by the spinner height -- it checks only the prop transition, not
+     * whether the control is already refreshing (RN 0.81,
+     * RCTPullToRefreshViewComponentView.mm updateProps /
+     * beginRefreshingProgrammatically). That shift lands moments after our
+     * settle animation and reads as a second stretch. Watch briefly for that
+     * single large downward jump past the resting offset and cancel it. On
+     * the old architecture no jump ever comes (RCTRefreshControl guards on
+     * its own refreshing state) and the observation just times out.
+     */
+    self.refreshShiftObservation?.invalidate()
+    self.refreshShiftObservation = sv.observe(
+      \.contentOffset,
+      options: [.old, .new]
+    ) { [weak self] scrollView, change in
+      guard let self = self,
+            let oldOffset = change.oldValue,
+            let newOffset = change.newValue else { return }
+      let downwardJump = oldOffset.y - newOffset.y
+      if downwardJump >= 40, newOffset.y < restingOffset - 20 {
+        /*
+         * Invalidate before correcting so our own setContentOffset cannot
+         * re-enter this observer. Correcting synchronously (from within the
+         * offset change notification, like a scroll clamp) prevents the wrong
+         * offset from ever rendering.
+         */
+        self.refreshShiftObservation?.invalidate()
+        self.refreshShiftObservation = nil
+        scrollView.setContentOffset(CGPoint(x: 0, y: restingOffset), animated: false)
+      }
+    }
+    DispatchQueue.main.asyncAfter(deadline: .now() + 1.5) { [weak self] in
+      self?.refreshShiftObservation?.invalidate()
+      self?.refreshShiftObservation = nil
+    }
+
     UIView.animate(
       withDuration: 0.3,
       delay: 0,
-      options: [.beginFromCurrentState],
+      options: [.beginFromCurrentState, .curveEaseOut],
       animations: {
-        sv.contentOffset = CGPoint(x: 0, y: -65)
-      },
-      completion: { _ in
-        refreshControl.beginRefreshing()
-        refreshControl.sendActions(for: .valueChanged)
+        sv.contentOffset = CGPoint(x: 0, y: restingOffset)
       }
     )
   }
