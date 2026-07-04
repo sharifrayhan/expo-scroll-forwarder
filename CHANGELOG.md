@@ -1,12 +1,18 @@
 # Changelog
 
-## 2.0.4
+## 2.0.5
 
-- iOS: fix the refresh spinner rendering static (not spinning) after the
-  content settles in the unpatched fallback. UIRefreshControl can freeze its
-  spin animation when begun programmatically while the content is still
-  animating; the control is now restarted (without animation) once the
-  settle completes, which reliably starts the spin.
+- iOS: revert the 2.0.4 spinner restart -- it did not fix the static spinner
+  and reintroduced a visible secondary content movement. The settle motion is
+  back to the single animation from 2.0.3.
+- iOS: removed the speculative `sizeToFit()` on the refresh control before
+  starting it; manipulating the control's layout right before
+  `beginRefreshing` is a plausible cause of the spinner rendering without its
+  spin animation.
+
+## 2.0.4 (deprecated -- use 2.0.5)
+
+- iOS: attempted spinner-restart fix; superseded by 2.0.5.
 
 ## 2.0.3
 

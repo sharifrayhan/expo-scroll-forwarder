@@ -201,11 +201,11 @@ class ExpoScrollForwarderView: ExpoView, UIGestureRecognizerDelegate {
    * it when the host app has such a patch applied; otherwise replicate it
    * with public API.
    *
-   * Ordering matters in the fallback: the spinner is sized and started
-   * BEFORE the settle animation, so it is visible and spinning while the
-   * content returns, and (on the old architecture) RCTRefreshControl's
-   * refreshing-state guard prevents a second prop-driven animation. The new
-   * architecture needs the additional compensation below.
+   * Ordering matters in the fallback: the spinner is started BEFORE the
+   * settle animation, so it is visible while the content returns, and (on
+   * the old architecture) RCTRefreshControl's refreshing-state guard
+   * prevents a second prop-driven animation. The new architecture needs the
+   * additional compensation below.
    */
   func beginRefreshing() {
     guard let sv = self.scrollView, let refreshControl = self.refreshControl else {
@@ -218,9 +218,6 @@ class ExpoScrollForwarderView: ExpoView, UIGestureRecognizerDelegate {
       refreshControl.perform(forwarderSelector)
       return
     }
-
-    // Ensure the spinner has a real frame even if it has not been laid out yet
-    refreshControl.sizeToFit()
 
     if !refreshControl.isRefreshing {
       refreshControl.beginRefreshing()
@@ -274,21 +271,6 @@ class ExpoScrollForwarderView: ExpoView, UIGestureRecognizerDelegate {
       options: [.beginFromCurrentState, .curveEaseOut],
       animations: {
         sv.contentOffset = CGPoint(x: 0, y: restingOffset)
-      },
-      completion: { _ in
-        /*
-         * UIRefreshControl can render a static, non-spinning spinner when
-         * begun programmatically while the content is still animating.
-         * Restarting it once the content has settled reliably starts the
-         * spin animation. Guarded so a refresh that already ended is left
-         * alone, and wrapped to avoid a visible blink from the inset
-         * adjustments of end/begin.
-         */
-        guard refreshControl.isRefreshing else { return }
-        UIView.performWithoutAnimation {
-          refreshControl.endRefreshing()
-          refreshControl.beginRefreshing()
-        }
       }
     )
   }
